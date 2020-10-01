@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx-custom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-custom
+  template:
+    metadata:
+      labels:
+        app: nginx-custom
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.14.2
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: persistent-storage
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: persistent-storage
+          persistentVolumeClaim:
+            claimName: efs-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-custom
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip
+#    external-dns.alpha.kubernetes.io/hostname: nginx-sandbox.heidelpay.io
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-custom
+  ports:
+    - protocol: TCP
+      name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-ingress-custom
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:188844917722:certificate/e8b72a81-3ca2-4454-ad98-22013e23d02c
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+#    alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
+spec:
+  rules:
+    - host: nginx-custom-sandbox.heidelpay.io
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: nginx-custom
+              servicePort: 80
