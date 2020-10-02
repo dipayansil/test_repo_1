@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nginx-custom
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: nginx-custom
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: nginx:2.18.0
+          image: nginx:1.18.0
           ports:
             - containerPort: 80
           volumeMounts:
