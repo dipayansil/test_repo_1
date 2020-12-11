@@ -1,0 +1,32 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eks-demo-cluster
+  region: eu-central-1
+
+vpc:
+  id: "vpc-02e4fbd06cf7cd13c"
+  subnets:
+    public:
+      eu-central-1a:
+        id: "subnet-083eb5b209816ba23"
+      eu-central-1b:
+        id: "subnet-09f7d4df6b466bceb"
+      eu-central-1c:
+        id: "subnet-0a70517c82fecfa71"
+
+nodeGroups:
+  - name: ng-1-onDemand
+    instanceType: t2.small
+    desiredCapacity: 1
+    maxSize: 3
+    availabilityZones: ["eu-central-1a","eu-central-1b","eu-central-1c"]
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+    labels:
+      instance-type: onDemand
+    ssh:
+      publicKeyName: eks-cluster-sandbox
+  
